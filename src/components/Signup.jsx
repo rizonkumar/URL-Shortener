@@ -13,16 +13,18 @@ import { BeatLoader } from "react-spinners";
 import * as Yup from "yup";
 import Error from "./Error.jsx";
 import useFetch from "@/hooks/use-fetch";
-import { login } from "@/db/apiAuth";
+import { signUp } from "@/db/apiAuth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { URLState } from "@/Context";
 
-const Login = () => {
+const Signup = () => {
   const [errors, setErrors] = useState([]);
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
     confirmpassword: "",
+    profile_pic: null,
   });
 
   const navigate = useNavigate();
@@ -31,14 +33,14 @@ const Login = () => {
   const longLink = searchParams.get("createNew");
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, files } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: files ? files[0] : value,
     }));
   };
 
-  const { data, error, loading, fn: fnLogin } = useFetch(login, formData);
+  const { data, error, loading, fn: fnSignup } = useFetch(signUp, formData);
   const { fetchUser } = URLState();
 
   useEffect(() => {
@@ -47,12 +49,13 @@ const Login = () => {
       navigate(`/dashboard?${longLink ? `createNew=${longLink}` : ""}`);
       fetchUser();
     }
-  }, [data, error]);
+  }, [error, loading]);
 
-  const handleLogin = async () => {
+  const handleSignup = async () => {
     setErrors([]);
     try {
       const schema = Yup.object().shape({
+        name: Yup.string().required("Name is required"),
         email: Yup.string()
           .email("Invalid Email")
           .required("Email is Required"),
@@ -62,12 +65,13 @@ const Login = () => {
         confirmpassword: Yup.string()
           .oneOf([Yup.ref("password"), null], "Passwords must match")
           .required("Confirm Password is required"),
+        profile_pic: Yup.mixed().required("Profile picture is required"),
       });
 
       await schema.validate(formData, { abortEarly: false });
 
       // api call
-      await fnLogin();
+      await fnSignup();
     } catch (error) {
       if (error instanceof Yup.ValidationError) {
         const newErrors = {};
@@ -82,18 +86,27 @@ const Login = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Login</CardTitle>
+        <CardTitle>Signup</CardTitle>
         <CardDescription>
-          Login to your account if you already have one
+          Create an account if you don't have one
         </CardDescription>
         {error && <Error message={error.message} />}
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
+        <div className="space-y-1">
+          <Input
+            name="name"
+            type="text"
+            placeholder="Enter Name"
+            onChange={handleInputChange}
+          />
+          {errors.name && <Error message={errors.name} />}
+        </div>
         <div className="space-y-1">
           <Input
             name="email"
             type="email"
-            placeholder="Enter email"
+            placeholder="Enter Email"
             onChange={handleInputChange}
           />
           {errors.email && <Error message={errors.email} />}
@@ -116,14 +129,27 @@ const Login = () => {
           />
           {errors.confirmpassword && <Error message={errors.confirmpassword} />}
         </div>
+        <div className="space-y-1">
+          <Input
+            name="profile_pic"
+            type="file"
+            accept="image/*"
+            onChange={handleInputChange}
+          />
+          {errors.profile_pic && <Error message={errors.profile_pic} />}
+        </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={handleLogin}>
-          {loading ? <BeatLoader size={12} color="#36d7b7" /> : "Login"}
+        <Button onClick={handleSignup}>
+          {loading ? (
+            <BeatLoader size={12} color="#36d7b7" />
+          ) : (
+            "Create Account"
+          )}
         </Button>
       </CardFooter>
     </Card>
   );
 };
 
-export default Login;
+export default Signup;
