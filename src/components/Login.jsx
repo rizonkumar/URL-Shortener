@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import {
   Card,
@@ -12,6 +12,9 @@ import { Button } from "./ui/button";
 import { BeatLoader } from "react-spinners";
 import * as Yup from "yup";
 import Error from "./Error.jsx";
+import useFetch from "@/hooks/use-fetch";
+import { login } from "@/db/apiAuth";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const Login = () => {
   const [errors, setErrors] = useState([]);
@@ -21,6 +24,11 @@ const Login = () => {
     confirmpassword: "",
   });
 
+  const navigate = useNavigate();
+  let [searchParams] = useSearchParams();
+
+  const longLink = searchParams.get("createNew");
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -28,6 +36,15 @@ const Login = () => {
       [name]: value,
     }));
   };
+
+  const { data, error, loading, fn: fnLogin } = useFetch(login, formData);
+
+  useEffect(() => {
+    console.log("data", data);
+    if (error === null && data) {
+      navigate(`/dashboard?${longLink ? `createNew=${longLink}` : ""}`);
+    }
+  }, [data, error]);
 
   const handleLogin = async () => {
     setErrors([]);
@@ -45,6 +62,9 @@ const Login = () => {
       });
 
       await schema.validate(formData, { abortEarly: false });
+
+      // api call
+      await fnLogin();
     } catch (error) {
       if (error instanceof Yup.ValidationError) {
         const newErrors = {};
@@ -63,7 +83,7 @@ const Login = () => {
         <CardDescription>
           Login to your account if you already have one
         </CardDescription>
-        <Error message={"some error"} />
+        {error && <Error message={error.message} />}
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-1">
@@ -96,7 +116,7 @@ const Login = () => {
       </CardContent>
       <CardFooter>
         <Button onClick={handleLogin}>
-          {true ? <BeatLoader size={12} color="#36d7b7" /> : "Login"}
+          {loading ? <BeatLoader size={12} color="#36d7b7" /> : "Login"}
         </Button>
       </CardFooter>
     </Card>
