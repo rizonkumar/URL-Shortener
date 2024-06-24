@@ -1,6 +1,6 @@
+import { createContext, useContext, useEffect } from "react";
 import { getCurrentUser } from "./db/apiAuth";
 import useFetch from "./hooks/use-fetch";
-import { createContext, useContext, useEffect } from "react";
 
 const URLContext = createContext();
 
@@ -13,7 +13,7 @@ const URLProvider = ({ children }) => {
   }, []);
 
   return (
-    <URLContext.Provider value={(user, fetchUser, loading, isAuthenticated)}>
+    <URLContext.Provider value={{ user, fetchUser, loading, isAuthenticated }}>
       {children}
     </URLContext.Provider>
   );

@@ -22,7 +22,6 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    confirmpassword: "",
   });
 
   const navigate = useNavigate();
@@ -44,8 +43,8 @@ const Login = () => {
   useEffect(() => {
     console.log("data", data);
     if (error === null && data) {
-      navigate(`/dashboard?${longLink ? `createNew=${longLink}` : ""}`);
       fetchUser();
+      navigate(`/dashboard?${longLink ? `createNew=${longLink}` : ""}`);
     }
   }, [data, error]);
 
@@ -59,9 +58,6 @@ const Login = () => {
         password: Yup.string()
           .min(6, "Password must be atleast 6 character")
           .required("Password is Required"),
-        confirmpassword: Yup.string()
-          .oneOf([Yup.ref("password"), null], "Passwords must match")
-          .required("Confirm Password is required"),
       });
 
       await schema.validate(formData, { abortEarly: false });
@@ -106,15 +102,6 @@ const Login = () => {
             onChange={handleInputChange}
           />
           {errors.password && <Error message={errors.password} />}
-        </div>
-        <div className="space-y-1">
-          <Input
-            name="confirmpassword"
-            type="password"
-            placeholder="Confirm Password"
-            onChange={handleInputChange}
-          />
-          {errors.confirmpassword && <Error message={errors.confirmpassword} />}
         </div>
       </CardContent>
       <CardFooter>

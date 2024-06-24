@@ -1,10 +1,9 @@
 import supabase, { supabaseUrl } from "./supabase";
 
-export async function login({ email, password, confirmPasword }) {
+export async function login({ email, password }) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
-    confirmPasword,
   });
 
   if (error) throw new Error(error.message);
@@ -46,4 +45,9 @@ export async function signUp({ name, email, password, profile_pic }) {
 
   console.log("Data for signup", data);
   return data;
+}
+
+export async function logout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw new Error(error.message);
 }
